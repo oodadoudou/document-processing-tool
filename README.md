@@ -1,11 +1,17 @@
 📚 Document Processing Tool (文档处理工具)
+⚠️ 注意：本脚本仅为个人使用而设计。在处理任何文件之前，请务必备份您的数据，以防意外丢失。
+请注意，本脚本将处理其执行命令的文件夹下的所有文件。执行前请务必确认您所在的目录路径。
+
+⚠️ Note: This script is designed for personal use only. Please ensure you back up your data before processing any files to prevent accidental loss.
+Please be aware that this script will process all files within the directory where the script command is executed. Before running, please confirm the directory path you are in.
+
 这是一个多功能的命令行文件批处理系统，旨在简化日常的文档管理和格式转换任务。它支持多种文件类型（如 PDF, TXT, EPUB, 图片, 压缩包）的操作，包括重命名、合并、裁剪、加密、解密、格式转换以及目录整理等。
 
 This is a versatile command-line file batch processing system designed to streamline everyday document management and format conversion tasks. It supports various file types (e.g., PDF, TXT, EPUB, images, archives) and operations including renaming, merging, trimming, encryption, decryption, format conversion, and directory organization.
 
 ✨ 主要功能 / ✨ Key Features
-压缩包解压 / Archive Extraction: 支持 zip, 7z, rar, tar, gz, bz2, xz, iso 等格式的自动解压，支持密码尝试。
-Automatically extracts zip, 7z, rar, tar, gz, bz2, xz, iso formats, with support for password attempts.
+压缩包解压 / Archive Extraction: 支持 zip, 7z, rar, tar, gz, bz2, xz, iso 等格式的自动解压，支持密码尝试。 （注意：此功能为非个人常用功能，可能存在一些兼容性问题，不建议在重要数据上使用，请务必提前备份。） Automatically extracts zip, 7z, rar, tar, gz, bz2, xz, iso formats, with support for password attempts.
+(Note: This is an infrequently used feature and may have some compatibility issues. It is not recommended for use with important data; please back up your files beforehand.)
 
 目录扁平化 / Directory Flattening: 将子目录中的所有文件提取到根目录，并删除空目录。
 Extracts all files from subdirectories to the root directory and deletes empty subdirectories.
@@ -76,6 +82,23 @@ pip install -r requirements.txt
 脚本将自动检测并处理其执行目录下的文件。PDF 输出将在当前目录下创建一个名为 processed_pdf 的文件夹。
 
 The script will automatically detect and process files in its execution directory. PDF output will be saved to a folder named processed_pdf created in the current directory.
+
+运行示例 / Running Example:
+假设您有一个名为 my_documents 的文件夹，其中包含您想要处理的 PDF 文件。
+
+Let's assume you have a folder named my_documents containing PDF files you want to process.
+
+# 进入包含您文件的目录
+# Navigate into the directory containing your files
+cd /path/to/my_documents
+
+# 现在，您可以直接运行脚本，它将处理 'my_documents' 文件夹中的文件
+# For example, to delete the first page of all PDFs in 'my_documents':
+# Now, you can directly run the script, and it will process files in the 'my_documents' folder.
+python file_process_tools.py -T f 1
+
+# 处理后的PDF文件将输出到 'my_documents/processed_pdf' 文件夹中
+# The processed PDF files will be output to the 'my_documents/processed_pdf' folder.
 
 常用命令示例 / Common Command Examples:
 解压所有压缩包： / Extract all archives:
