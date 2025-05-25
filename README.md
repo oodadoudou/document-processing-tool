@@ -62,16 +62,18 @@ A multi-functional command-line tool for batch processing various document and f
 
 ## 🚀 Installation (安装)
 
+## 🚀 Installation (安装)
+
 1.  **Clone the repository (克隆仓库)**:
     ```bash
-    git clone <repository_url>
-    cd <repository_name>
+    git clone [https://github.com/oodadoudou/document-processing-tool.git](https://github.com/oodadoudou/document-processing-tool.git)
+    cd document-processing-tool
     ```
 
 2.  **Create a virtual environment (创建虚拟环境 - 推荐)**:
     ```bash
-    python3 -m venv venv
-    source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
+    python3 -m venv document_tool_env
+    source document_tool_env/bin/activate  # On Windows, use `document_tool_env\Scripts\activate`
     ```
 
 3.  **Install dependencies (安装依赖项)**:
@@ -79,10 +81,14 @@ A multi-functional command-line tool for batch processing various document and f
     pip install -r requirements.txt
     ```
 
-4.  **Place your files (放置您的文件)**:
-    Place the `file_process_tools.py` script and the `modules` directory in the folder where you intend to process your files. The script operates on the current working directory (`INPUT_DIR = os.getcwd()`) by default.
+4.  **Execution Location (执行位置)**:
+    This script is designed to process files within the **current directory** where the command is executed. Therefore, please navigate to the folder containing the files you wish to process before running the script.
+    For convenience, it is highly recommended to set up a shortcut command or add the script's directory to your system's PATH environment variable. This will allow you to run the script from any directory directly.
 
-    将 `file_process_tools.py` 脚本和 `modules` 目录放置在您打算处理文件的文件夹中。默认情况下，该脚本在当前工作目录 (`INPUT_DIR = os.getcwd()`) 中操作。
+    本脚本设计为只处理执行命令的**当前目录**下的所有文件。因此，请您在需要处理文件所在的文件夹中执行该脚本。
+    为了方便使用，强烈建议您为该脚本设定一个快捷命令，或将其目录添加到您的系统 PATH 环境变量中。这样，您就可以在任何目录下直接运行此脚本。
+
+---
 
 ---
 
