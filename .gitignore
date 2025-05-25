@@ -1,0 +1,25 @@
+# Python bytecode files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Distribution / packaging
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Environments
+.env
+venv/
+env/
+
+# IDEs and other tools
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store # macOS specific
