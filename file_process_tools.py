@@ -9,28 +9,29 @@ import rarfile
 import tarfile
 import patoolib
 import shutil
-from PyPDF2 import PdfMerger # Still kept, but no longer used for PDF merging
+from PyPDF2 import PdfMerger
 from pypinyin import pinyin, Style
 from PIL import Image
 from concurrent.futures import ThreadPoolExecutor
-import pikepdf # Imported for PDF encryption, decryption, and repair; now also for PDF merging
+import pikepdf
 from ebooklib import epub
 from bs4 import BeautifulSoup
 import logging
 import getpass
 from tqdm import tqdm
-from ebooklib import ITEM_STYLE # ITEM_STYLE is still imported but not used for document type determination
+from ebooklib import ITEM_STYLE
 
 # Global Configuration
-# INPUT_DIR = "/Users/doudouda/Downloads/tmp"
-INPUT_DIR = "/Users/doudouda/Downloads/2" # Default input directory
-PDF_OUTPUT_DIR = "/Users/doudouda/Downloads/pdfs" # Default PDF output directory
+# Detect the script's execution directory and set it as the input directory
+INPUT_DIR = os.getcwd()
+# PDF output will be in a subfolder named 'processed_pdf' within the current execution directory
+PDF_OUTPUT_DIR = os.path.join(INPUT_DIR, "processed_pdf") 
 MAX_WORKERS = 5
 DEBUG = True
 SUPPORTED_ARCHIVES = ('.zip', '.7z', '.rar', '.tar', '.gz', '.bz2', '.xz', '.iso')
 DEFAULT_PASSWORD = "1111"  # Default decompression password
 REPORT_TEMPLATE = """
-╔══════════════ {title} ══════════════╗
+╔══════════════ {title} ═════════════════╗
 ║ Total Files Processed: {total}
 ║ Successfully Renamed: {success}
 ╚════════════════════════════════════════╝
@@ -249,14 +250,14 @@ def remove_pdf_pages(input_dir=INPUT_DIR, output_dir=PDF_OUTPUT_DIR, trim_type='
                         keep_proportion=True
                     )
 
-                # Force XREF table rebuild on save
+                # Save时强制重建XREF表
                 new_doc.save(
                     output_path,
-                    garbage=4,            # Highest level garbage collection
-                    deflate=True,         # Compress content
-                    clean=True,            # Clean fragments
-                    linear=True,           # Linearize PDF
-                    no_new_id=True,        # Keep file ID
+                    garbage=4,            # 最高级别垃圾回收
+                    deflate=True,         # 压缩内容
+                    clean=True,            # 清理碎片
+                    linear=True,           # 线性化PDF
+                    no_new_id=True,        # 保持文件ID
                 )
 
                 success_files.append(pdf_file)
@@ -436,7 +437,7 @@ Error Reason: {str(exception)[:50]}
     """
     logger.error(partial_report)
 
-def compress_images(filename="compressed", target_width=1500, quality=80, dpi=300):
+def compress_images(filename="compressed", target_width=1500, quality=90, dpi=300):
     """
     Super Compression PDF Generation Function (Ultimate Volume Optimization)
     Core optimization techniques:
