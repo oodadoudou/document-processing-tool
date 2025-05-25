@@ -54,7 +54,7 @@ A multi-functional command-line tool for batch processing various document and f
 * **Dependencies**: All Python dependencies are listed in `requirements.txt`.
 * **macOS Specific**: For `--iso-creator` (`-ISO`) functionality, `hdiutil` must be available on your system (which is usually pre-installed on macOS).
 
-* **Python**: 推荐使用 Python 3.11+。
+* **Python**: 推荐使用 Python 3.12+。
 * **依赖项**: 所有 Python 依赖项列在 `requirements.txt` 中。
 * **macOS 特定**: 对于 `--iso-creator` (`-ISO`) 功能，您的系统上必须安装 `hdiutil`（通常在 macOS 上预装）。
 
