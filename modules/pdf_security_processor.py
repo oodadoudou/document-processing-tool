@@ -5,8 +5,6 @@ import pikepdf
 from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
-if not logger.handlers:
-    logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 def encode_pdfs(input_dir: str, output_dir: str, password: str) -> None:
     """

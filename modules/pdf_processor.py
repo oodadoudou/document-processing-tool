@@ -13,8 +13,6 @@ except ImportError:
     import report_generator
 
 logger = logging.getLogger(__name__)
-if not logger.handlers:
-    logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 def remove_pdf_pages(input_dir: str, output_dir: str, trim_type: str = 'f', num_pages: int = 1) -> None:
     """

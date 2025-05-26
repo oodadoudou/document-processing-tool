@@ -1,25 +1,51 @@
-# Python bytecode files
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Distribution / packaging
-.Python
-build/
-dist/
-*.egg-info/
-.eggs/
-
-# Environments
-.env
+# Python 虚拟环境
+.venv/
 venv/
 env/
+/bin/
+/include/
+/lib/
+/lib64/
+/Scripts/
+/share/
+*.pyc
+*.egg-info/
+__pycache__/
 
-# IDEs and other tools
-.vscode/
-.idea/
-*.swp
-*.swo
+# IDE 和编辑器文件
+.idea/             # IntelliJ IDEA
+.vscode/           # VS Code
+*.iml              # IntelliJ IDEA
+*.code-workspace   # VS Code
+.DS_Store          # macOS specific
+.history/          # VS Code Local History
+*.sublime-project
+*.sublime-workspace
+.project
+.directory
+.settings/
+
+# PyInstaller / 打包相关文件
+dist/              # PyInstaller 生成的输出目录
+build/             # PyInstaller/setuptools 构建目录
+*.spec             # PyInstaller spec 文件
+__pyinstaller/
+
+# 日志文件
+*.log
+logs/              # 如果您的应用有专门的日志文件夹
+
+# 临时文件
+*.tmp
+*.temp
 *~
-.DS_Store # macOS specific
+*.bak
+
+# 数据文
+processed_files/
+.ipynb_checkpoints/ # Jupyter Notebook checkpoints
+
+# 操作系统特定文件
+Thumbs.db          # Windows specific
+Desktop.ini        # Windows specific
+ehthumbs.db        # Windows specific

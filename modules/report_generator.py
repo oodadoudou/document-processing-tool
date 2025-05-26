@@ -4,9 +4,6 @@ import os
 
 logger = logging.getLogger(__name__)
 
-if not logger.handlers:
-    logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
-
 REPORT_TEMPLATE = """
 ╔══════════════ {title} ═════════════════╗
 ║ Total Files Processed: {total}

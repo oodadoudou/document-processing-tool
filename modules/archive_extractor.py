@@ -10,9 +10,6 @@ import getpass
 from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
-# Configure logging if this module is run standalone, otherwise it will use parent's config
-if not logger.handlers:
-    logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 SUPPORTED_ARCHIVES = ('.zip', '.7z', '.rar', '.tar', '.gz', '.bz2', '.xz', '.iso')
 DEFAULT_PASSWORD = "1111"  # Default decompression password

@@ -8,8 +8,6 @@ import pikepdf
 from modules import report_generator
 
 logger = logging.getLogger(__name__)
-if not logger.handlers:
-    logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 def natural_sort_key(s):
     """

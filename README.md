@@ -526,6 +526,32 @@ Document format conversion functions.
 
 ---
 
+## ✨ GUI 版本更新 - 现已支持 Windows！
+
+我们很高兴地宣布，本工具现已提供图形用户界面 (GUI) 版本，并全面支持 **Windows 操作系统**！
+
+现在，您可以更直观、便捷地使用各项文件处理功能，无需记忆复杂的命令行参数。
+
+### ⚠️ 注意事项与功能限制：
+
+虽然 GUI 版本提供了极大的便利，但有部分功能和操作在 Windows 环境下或 GUI 中需要额外注意：
+
+* **`ISO` 创建功能 (Create ISO from Folders)**:
+    * 此功能**仅在 macOS 系统上可用**。由于其依赖 `hdiutil` 工具，这是 macOS 特有的，因此在 Windows 或其他操作系统上无法使用。
+
+* **`encode_folders` 功能 (文件夹压缩)**:
+    * 为了在 Windows 上正常使用此功能，您需要进行额外的环境配置：
+        * **安装 7-Zip**: 请从 [https://www.7-zip.org/](https://www.7-zip.org/) 下载并安装 7-Zip。安装后，务必将 7-Zip 的安装目录（例如，`C:\Program Files\7-Zip`）添加到您的系统 `PATH` 环境变量中。
+        * **安装 `zip` 命令**: `zip` 命令在 Windows 上通常不自带。您可以选择以下任一方式安装：
+            * **Git Bash**: 安装 Git for Windows 通常会包含 `zip` 命令。
+            * **Windows Subsystem for Linux (WSL)**: 在 WSL 中安装一个 Linux 发行版，并在其内部安装 `zip` 工具。
+            * **Chocolatey**: 如果您使用 Chocolatey 包管理器，可以通过运行 `choco install zip` 来安装。
+    * **重要提示**: 如果未正确安装并配置上述外部工具，`encode_folders` 功能将无法正常工作，并可能在日志中显示“命令未找到”的错误信息。
+
+我们致力于提供最佳的用户体验。如果您在使用过程中遇到任何问题，请随时提出！
+
+---
+
 ## 📞 Contact (联系方式)
 
 如果您在使用本工具时遇到任何问题或有任何建议，欢迎通过 GitHub Issues 反馈。

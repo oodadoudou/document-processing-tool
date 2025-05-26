@@ -12,8 +12,6 @@ except ImportError:
     import report_generator
 
 logger = logging.getLogger(__name__)
-if not logger.handlers:
-    logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 def _check_command_exists(command: str) -> bool:
     """Checks if a given command exists in the system's PATH."""

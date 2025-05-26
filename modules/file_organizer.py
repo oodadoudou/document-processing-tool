@@ -6,10 +6,6 @@ import logging
 from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
-# Configure logging if this module is run standalone, otherwise it will use parent's config
-if not logger.handlers:
-    logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
-
 
 def normalize_str(s: str) -> str:
     """

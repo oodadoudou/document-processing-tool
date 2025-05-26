@@ -14,9 +14,6 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-if not logger.handlers:
-    logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
-
 def normalize_str(s: str) -> str:
     """
     Normalizes a string using NFC (Normalization Form Canonical Composition).
