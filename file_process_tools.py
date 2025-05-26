@@ -4,7 +4,6 @@ import argparse
 import logging
 from pathlib import Path
 
-# Import necessary modules directly
 from modules import iso_creator
 from modules import file_organizer
 from modules import archive_extractor
@@ -14,6 +13,7 @@ from modules import text_converter
 from modules import pdf_processor
 from modules import file_combiner
 from modules import pdf_security_processor
+from modules import folder_processor
 
 INPUT_DIR = os.getcwd()
 PROCESSED_FILES_DIR = os.path.join(INPUT_DIR, "processed_files")
@@ -269,6 +269,25 @@ def parse_args():
                         based on common substrings in their filenames.
                         Targets PDF, EPUB, and TXT files by default.
                         Example: --file-organizer""")
+    
+    parser.add_argument('--encode-folders', '-EF',
+                        action='store',
+                        nargs='?',
+                        const='1111', # Default password if none provided
+                        metavar='PASSWORD',
+                        help="""🔒 Encodes and double-compresses subfolders into .z删ip files.
+                        Optionally provide a password for 7z encryption (default: 1111).
+                        Example: --encode-folders my_password""")
+
+    parser.add_argument('--decode-folders', '-DF',
+                        action='store',
+                        nargs='?',
+                        const='1111', # Default password if none provided
+                        metavar='PASSWORD',
+                        help="""🔓 Decodes and double-decompresses .z删ip files into original folders.
+                        Optionally provide a password for 7z decryption (default: 1111).
+                        Example: --decode-folders my_password""")
+
 
     parser.add_argument('-h', '--help', action='help', help='Show this help message and exit.')
 
@@ -279,11 +298,11 @@ if __name__ == "__main__":
     /\_/\           ___
    = o_o =_______    \ \
     __^      __(  \.__) )
-(@)<_____>__(_____)____/
+(@)<_____>__(_____)____/    
 ::::::::::: :::::::   ::::::::   ::::::::   ::::::::  :::        ::::::::
     :+:    :+:    :+: :+:    :+: :+:    :+: :+:    :+: :+:       :+:    :+:
     +:+    +:+    +:+ +:+    +:+ +:+    +:+ +:+    +:+ +:+       +:+
-    +#+    +#+    +:+ +#+    +:+ +#+    +:+ +#+    +:+ +#+       +#++:++#++
+    +#+    +#+    +#+ +#+    +:+ +#+    +#+ +#+    +#+ +#+       +#++:++#++
     +#+    +#+    +#+ +#+    +#+ +#+    +#+ +#+    +#+ +#+              +#+
     #+#    #+#    #+# #+#    #+# #+#    #+# #+#    #+# #+#       #+#    #+#
     ###     ########   ########   ########   ########  ########## ########
@@ -391,6 +410,23 @@ if __name__ == "__main__":
                         Path(PROCESSED_FILES_DIR)
                     )
                 logger.info("Specific PDF page removal operation complete.")
+            
+            if args.encode_folders is not None:
+                password = args.encode_folders
+                if password is None:
+                    password = "1111"
+                logger.info(f"Executing folder encoding with password: {'*' * len(password) if password else 'N/A'}")
+                folder_processor.encode_folders_with_double_compression(INPUT_DIR, password)
+                logger.info("Folder encoding operation complete.")
+
+            if args.decode_folders is not None:
+                password = args.decode_folders
+                if password is None:
+                    password = "1111"
+                logger.info(f"Executing folder decoding with password: {'*' * len(password) if password else 'N/A'}")
+                folder_processor.decode_folders_with_double_decompression(INPUT_DIR, INPUT_DIR, password)
+                logger.info("Folder decoding operation complete.")
+
 
         process_core_operations(args)
         process_file_operations(args)

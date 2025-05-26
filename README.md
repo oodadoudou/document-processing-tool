@@ -254,6 +254,38 @@ File renaming and batch processing functions.
     python file_process_tools.py -RR
     ```
 
+#### 6. Encode Folders (编码文件夹)
+
+* **Long/Short Arg**: `--encode-folders` / `-EF`
+* **Description**: Encodes and double-compresses subfolders into `.z删ip` files. Optionally provide a password for 7z encryption (default: 1111).
+* **Description**: 将子文件夹双重压缩并编码为 `.z删ip` 文件。可选地提供一个密码用于 7z 加密（默认密码为 `1111`）。
+* **Usage Examples (使用示例)**:
+    ```bash
+    # Encodes folders with the default password (1111)
+    # 使用默认密码 (1111) 编码文件夹
+    python file_process_tools.py -EF
+
+    # Encodes folders with a custom password 'my_password'
+    # 使用自定义密码 'my_password' 编码文件夹
+    python file_process_tools.py -EF my_password
+    ```
+
+#### 7. Decode Folders (解码文件夹)
+
+* **Long/Short Arg**: `--decode-folders` / `-DF`
+* **Description**: Decodes and double-decompresses `.z删ip` files into original folders. Optionally provide a password for 7z decryption (default: 1111).
+* **Description**: 将 `.z删ip` 文件双重解压并解码回原始文件夹结构。可选地提供一个密码用于 7z 解密（默认密码为 `1111`）。
+* **Usage Examples (使用示例)**:
+    ```bash
+    # Decodes folders with the default password (1111)
+    # 使用默认密码 (1111) 解码文件夹
+    python file_process_tools.py -DF
+
+    # Decodes folders with a custom password 'my_password'
+    # 使用自定义密码 'my_password' 解码文件夹
+    python file_process_tools.py -DF my_password
+    ```
+
 ### [Format Conversion] (格式转换)
 
 Document format conversion functions.
