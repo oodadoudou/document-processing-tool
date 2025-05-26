@@ -11,7 +11,7 @@ env/
 *.pyc
 *.egg-info/
 __pycache__/
-
+--
 # IDE 和编辑器文件
 .idea/             # IntelliJ IDEA
 .vscode/           # VS Code
@@ -41,7 +41,6 @@ logs/              # 如果您的应用有专门的日志文件夹
 *~
 *.bak
 
-# 数据文
 processed_files/
 .ipynb_checkpoints/ # Jupyter Notebook checkpoints
 
