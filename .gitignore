@@ -26,8 +26,8 @@ __pycache__/
 .settings/
 
 # PyInstaller / 打包相关文件
-# dist/              # PyInstaller 生成的输出目录
-# build/             # PyInstaller/setuptools 构建目录
+dist/              # PyInstaller 生成的输出目录
+build/             # PyInstaller/setuptools 构建目录
 *.spec             # PyInstaller spec 文件
 __pyinstaller/
 
