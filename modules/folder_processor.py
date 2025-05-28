@@ -1,100 +1,40 @@
 import os
-import subprocess
 import shutil
 import logging
 import time
 from tqdm import tqdm
 from pathlib import Path
-import platform
-try:
-    from modules import report_generator
-except ImportError:
-    import report_generator
+import zipfile
+import py7zr
 
+from modules import report_generator
+    
 logger = logging.getLogger(__name__)
 
-def _check_command_exists(command: str) -> bool:
-    """Checks if a given command exists in the system's PATH."""
-    return shutil.which(command) is not None
-
-def _log_missing_command_error(command: str) -> None:
-    """Logs a platform-specific error message for a missing command."""
-    system = platform.system()
-    error_message = f"Error: '{command}' command not found."
-
-    if command == "7z":
-        if system == "Windows":
-            error_message += " Please install 7-Zip from https://www.7-zip.org/ and ensure its executable directory (e.g., C:\\Program Files\\7-Zip) is added to your system's PATH environment variable."
-        elif system == "Darwin": # macOS
-            error_message += " Please install p7zip via Homebrew: 'brew install p7zip'"
-        elif system == "Linux":
-            error_message += " Please install p7zip-full: 'sudo apt-get install p7zip-full' (Debian/Ubuntu) or 'sudo yum install p7zip-full' (RedHat/CentOS)."
-        else:
-            error_message += " Please install '7z' according to your operating system's package manager or official website."
-    elif command in ["zip", "unzip"]:
-        if system == "Windows":
-            error_message += " These commands are usually available via Git Bash, Windows Subsystem for Linux (WSL), or can be installed with Chocolatey: 'choco install zip' / 'choco install unzip'."
-        elif system == "Darwin": # macOS
-            error_message += " These commands are usually pre-installed on macOS. If not, try reinstalling macOS command-line tools or Homebrew's 'zip' package."
-        elif system == "Linux":
-            error_message += " Please install them: 'sudo apt-get install zip unzip' (Debian/Ubuntu) or 'sudo yum install zip unzip' (RedHat/CentOS)."
-        else:
-            error_message += f" Please install '{command}' according to your operating system's package manager or official website."
-    
-    logger.error(error_message)
-
-
 def encode_folders_with_double_compression(input_dir: str, password: str = "1111") -> None:
-    """
-    Encodes and double-compresses all first-level files and directories in the input_dir.
-    Processes each item:
-    1. Compresses to .7z with a password.
-    2. Renames .7z to .7删z.
-    3. Compresses .7删z to .zip (no encryption).
-    4. Renames .zip to .z删ip.
-    5. Cleans up intermediate files.
+    logger.info(f"Starting double compression (Python libraries) of items in: {input_dir}")
 
-    Args:
-        input_dir (str): The directory containing the files/folders to be processed.
-        password (str): The password for the initial 7z encryption (default: "1111").
-    """
-    logger.info(f"Starting double compression and encoding of items in: {input_dir}")
-
-    # Check for required external commands with OS-specific messages
-    if not _check_command_exists("7z"):
-        _log_missing_command_error("7z")
-        return
-    if not _check_command_exists("zip"):
-        _log_missing_command_error("zip")
-        return
-
-    # Get all first-level items (files and directories)
-    # Exclude special directories and hidden files
     items_to_process = [
         f for f in os.listdir(input_dir)
         if f != "processed_files" and f != "decoded_files" and not f.startswith('.')
     ]
     
     if not items_to_process:
-        logger.warning(f"No files or folders found in '{input_dir}' for processing (excluding hidden files and tool directories).")
+        logger.warning(f"No files or folders found in '{input_dir}' for processing (excluding hidden files and specific directories).")
         return
 
     successful_items = []
     failed_items = []
-    start_time = time.time()
+    start_time_total = time.time()
 
     for item_name in tqdm(items_to_process, desc="Encoding Items"):
         full_item_path = os.path.join(input_dir, item_name)
-        
-        # Determine base name for intermediate archives and final output
-        # For both files and directories, the base name for the .z删ip will be the item's name without its original extension (if it's a file).
-        # This ensures "my_document.pdf" -> "my_document.z删ip" and "my_folder" -> "my_folder.z删ip".
+
         item_base_name_for_archive = Path(item_name).stem if os.path.isfile(full_item_path) else item_name
         
-        # Define intermediate and final file paths, all in input_dir
         sevenz_temp_name = f"{item_base_name_for_archive}.7z"
         renamed_sevenz_name = f"{item_base_name_for_archive}.7删z"
-        zip_temp_name = f"{item_base_name_for_archive}.zip" # Use .zip temporarily
+        zip_temp_name = f"{item_base_name_for_archive}.zip"
         final_output_name = f"{item_base_name_for_archive}.z删ip"
 
         sevenz_temp_path = os.path.join(input_dir, sevenz_temp_name)
@@ -102,113 +42,78 @@ def encode_folders_with_double_compression(input_dir: str, password: str = "1111
         zip_temp_path = os.path.join(input_dir, zip_temp_name)
         final_output_path = os.path.join(input_dir, final_output_name)
 
-        logger.info(f"\n--- Processing item: {item_name} ---")
+        logger.info(f"\n--- Processing item for encoding: {item_name} ---")
 
         try:
-            # Step 1: Compress to .7z with password
-            logger.info("Step 1: 7z primary compression...")
-            original_cwd = os.getcwd()
-            os.chdir(input_dir) # Change CWD to input_dir for relative paths in archive
-
-            cmd_7z = [
-                "7z", "a", "-t7z",
-                f"-p{password}",
-                "-y", # Assume yes to all queries
-                os.path.basename(sevenz_temp_path), # Output archive name relative to new CWD
-                item_name # Item to compress relative to new CWD (this is the original file/folder name)
-            ]
-            subprocess.run(cmd_7z, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            logger.info(f"Successfully compressed to {os.path.basename(sevenz_temp_path)}")
+            # Step 1: Compress to .7z with password using py7zr
+            logger.info(f"Step 1: 7z primary compression with py7zr for '{item_name}'...")
+            with py7zr.SevenZipFile(sevenz_temp_path, 'w', password=password) as archive:
+                if os.path.isdir(full_item_path):
+                    # arcname ensures the folder is stored with its name as the root in the archive
+                    archive.writeall(full_item_path, arcname=item_name) 
+                else: # it's a file
+                    # arcname ensures the file is stored with its name at the root of the archive
+                    archive.write(full_item_path, arcname=item_name) 
+            logger.info(f"Successfully compressed '{item_name}' to '{os.path.basename(sevenz_temp_path)}'")
 
             # Step 2: Rename .7z to .7删z
-            logger.info("Step 2: Renaming .7z to .7删z...")
+            logger.info(f"Step 2: Renaming '{os.path.basename(sevenz_temp_path)}' to '{os.path.basename(renamed_sevenz_name)}'...")
             os.rename(sevenz_temp_path, renamed_sevenz_path)
-            logger.info(f"Renamed to {os.path.basename(renamed_sevenz_path)}")
+            logger.info(f"Renamed to '{os.path.basename(renamed_sevenz_name)}'")
 
-            # Step 3: Compress .7删z to .zip (no encryption)
-            logger.info("Step 3: ZIP secondary compression...")
-            # zip command also works relative to current working directory
-            cmd_zip = [
-                "zip", "-q",
-                os.path.basename(zip_temp_path), # Output zip name relative to new CWD
-                os.path.basename(renamed_sevenz_path) # Item to zip relative to new CWD
-            ]
-            subprocess.run(cmd_zip, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            logger.info(f"Successfully secondary compressed to {os.path.basename(zip_temp_path)}")
+            # Step 3: Compress .7删z to .zip (no encryption) using zipfile
+            logger.info(f"Step 3: ZIP secondary compression for '{os.path.basename(renamed_sevenz_name)}' with zipfile...")
+            with zipfile.ZipFile(zip_temp_path, 'w', compression=zipfile.ZIP_DEFLATED) as zf:
+                # Add the renamed_sevenz_file, using its basename as the name within the ZIP
+                zf.write(renamed_sevenz_path, arcname=os.path.basename(renamed_sevenz_name))
+            logger.info(f"Successfully secondary compressed to '{os.path.basename(zip_temp_path)}'")
 
             # Clean up intermediate .7删z file
-            logger.info("Cleaning up intermediate .7删z file...")
+            logger.info(f"Cleaning up intermediate file: '{os.path.basename(renamed_sevenz_name)}'...")
             os.remove(renamed_sevenz_path)
-            logger.info("Cleaned temporary file.")
+            logger.info("Cleaned temporary .7删z file.")
 
             # Step 4: Rename .zip to .z删ip
-            logger.info("Step 4: Final renaming .zip to .z删ip...")
+            logger.info(f"Step 4: Final renaming '{os.path.basename(zip_temp_path)}' to '{os.path.basename(final_output_name)}'...")
             os.rename(zip_temp_path, final_output_path)
-            logger.info(f"Final renamed to {os.path.basename(final_output_path)}")
+            logger.info(f"Final renamed to '{os.path.basename(final_output_name)}'")
 
             successful_items.append(item_name)
-            logger.info(f"Item {item_name} processed successfully.")
+            logger.info(f"Item '{item_name}' processed successfully for encoding.")
 
-        except subprocess.CalledProcessError as e:
-            error_msg = f"Command failed: {e.cmd}\nStdout: {e.stdout.decode().strip()}\nStderr: {e.stderr.decode().strip()}"
-            failed_items.append((item_name, error_msg))
-            logger.error(f"Processing failed for {item_name}: {error_msg}")
         except Exception as e:
-            error_msg = f"An unexpected error occurred: {type(e).__name__} - {e}"
+            error_msg = f"An unexpected error occurred during encoding of '{item_name}': {type(e).__name__} - {e}"
             failed_items.append((item_name, error_msg))
-            logger.error(f"Processing failed for {item_name}: {error_msg}")
+            logger.error(error_msg, exc_info=True) # Log with traceback for debugging
         finally:
-            os.chdir(original_cwd) # Always return to original working directory
-            # Ensure cleanup of any remaining temp files in case of error
+            # Ensure cleanup of any remaining temp files from this item's processing
             for temp_file_path in [sevenz_temp_path, renamed_sevenz_path, zip_temp_path]:
                 if os.path.exists(temp_file_path):
                     try:
                         os.remove(temp_file_path)
-                        logger.warning(f"Cleaned up leftover temp file: {os.path.basename(temp_file_path)}")
-                    except OSError as e:
-                        logger.error(f"Could not delete leftover temp file {os.path.basename(temp_file_path)}: {e}")
+                        logger.warning(f"Cleaned up leftover temp file from encoding: '{os.path.basename(temp_file_path)}'")
+                    except OSError as e_clean:
+                        logger.error(f"Could not delete leftover temp file '{os.path.basename(temp_file_path)}': {e_clean}")
 
-    duration = time.time() - start_time
-    report_generator.generate_report(
-        report_title="Item Double Compression Report",
-        total_processed=len(items_to_process),
-        success_files=successful_items,
-        error_files=failed_items,
-        duration=duration
-    )
-    logger.info("All items processed!")
+    duration_total = time.time() - start_time_total
+    if report_generator:
+        report_generator.generate_report(
+            report_title="Item Double Compression Report (Python Libraries)",
+            total_processed=len(items_to_process),
+            success_files=successful_items,
+            error_files=failed_items,
+            duration=duration_total
+        )
+    else:
+        logger.info("Report generation skipped as 'report_generator' module was not found.")
+    logger.info("All items processed for encoding!")
 
 
 def decode_folders_with_double_decompression(input_dir: str, output_dir: str, password: str = "1111") -> None:
-    """
-    Decodes and double-decompresses files in the input_dir that have a .z删ip extension.
-    Processes each file:
-    1. Renames .z删ip to .zip.
-    2. Decompresses the .zip file to get .7删z.
-    3. Renames .7删z to .7z.
-    4. Decompresses the .7z file with a password to restore original content.
-       Crucially, it determines the actual original filename/foldername from the 7z archive
-       to ensure correct handling of nested directories.
-    5. Fixes nested directory structures if present (e.g., folder/folder).
-    6. Cleans up all intermediate files, keeping only the original .z删ip and restored content.
-
-    Args:
-        input_dir (str): The directory containing the encoded .z删ip files.
-        output_dir (str): The directory where decoded content will be extracted.
-        password (str): The password for the inner 7z decompression (default: "1111").
-    """
-    logger.info(f"Starting double decompression and decoding of files in: {input_dir} to {output_dir}")
-
-    # Check for required external commands with OS-specific messages
-    if not _check_command_exists("unzip"):
-        _log_missing_command_error("unzip")
-        return
-    if not _check_command_exists("7z"):
-        _log_missing_command_error("7z")
-        return
-
-    os.makedirs(output_dir, exist_ok=True)
-
+    # output_dir parameter is kept for signature consistency but will be ignored for extraction path.
+    # Extraction will now happen into input_dir.
+    logger.info(f"Starting double decompression (Python libraries) of files in '{input_dir}'. Decoded files will be placed in '{input_dir}'.")
+    
     encoded_files = [f for f in os.listdir(input_dir) if f.endswith(".z删ip")]
     if not encoded_files:
         logger.warning(f"No encoded files (with .z删ip extension) found in '{input_dir}' for processing.")
@@ -216,163 +121,117 @@ def decode_folders_with_double_decompression(input_dir: str, output_dir: str, pa
 
     successful_files = []
     failed_files = []
-    start_time = time.time()
+    start_time_total = time.time()
 
     for file_name in tqdm(encoded_files, desc="Decoding Files"):
         full_zsanip_path = os.path.join(input_dir, file_name)
-        
-        # The .z删ip filename (e.g., "my_document" from "my_document.z删ip")
-        # is the base name used for intermediate archives.
         item_base_name_from_zsanip = Path(file_name).stem 
 
-        # Define intermediate file paths based on this item_base_name
         temp_zip_name = f"{item_base_name_from_zsanip}.zip"
-        temp_7san_z_name = f"{item_base_name_from_zsanip}.7删z"
-        temp_7z_name = f"{item_base_name_from_zsanip}.7z"
-
+        # This is the expected name of the .7删z file *inside* the .zip archive
+        # and also the name of the file when extracted.
+        name_of_7sanz_inside_zip = f"{item_base_name_from_zsanip}.7删z"
+        
         temp_zip_path = os.path.join(input_dir, temp_zip_name)
-        temp_7san_z_path = os.path.join(input_dir, temp_7san_z_name)
-        temp_7z_path = os.path.join(input_dir, temp_7z_name)
-
-        # Variable to store the actual original name inside the 7z archive
-        # This will be the name of the file (e.g., "my_document.pdf") or folder (e.g., "my_folder/")
-        extracted_original_content_name = None
-
-        logger.info(f"\n--- Starting to process file: {file_name} ---")
+        # Path where the .7删z file will be extracted from the zip
+        extracted_7sanz_path = os.path.join(input_dir, name_of_7sanz_inside_zip)
+        # Path for the .7z file after renaming
+        temp_7z_path = os.path.join(input_dir, f"{item_base_name_from_zsanip}.7z")
+        
+        extracted_original_content_name = None 
+        logger.info(f"\n--- Starting to process file for decoding: {file_name} ---")
 
         try:
-            # Step 1: Copy and rename .z删ip to .zip
-            logger.info(f"Step 1: Copying and renaming .z删ip to .zip -> {os.path.basename(temp_zip_path)}")
-            shutil.copy2(full_zsanip_path, temp_zip_path) # Copy to avoid modifying original .z删ip in place
+            # Step 1: Copy .z删ip and rename to .zip
+            logger.info(f"Step 1: Copying '{file_name}' and renaming to '{os.path.basename(temp_zip_path)}'...")
+            shutil.copy2(full_zsanip_path, temp_zip_path)
 
-            # Step 2: Decompress ZIP to get .7删z
-            logger.info("Step 2: Decompressing ZIP...")
-            cmd_unzip = ["unzip", "-qo", temp_zip_path, "-d", input_dir]
-            subprocess.run(cmd_unzip, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            logger.info("ZIP decompression successful.")
+            # Step 2: Decompress ZIP to get .7删z using zipfile
+            logger.info(f"Step 2: Decompressing '{os.path.basename(temp_zip_path)}' with zipfile...")
+            with zipfile.ZipFile(temp_zip_path, 'r') as zf:
+                # Ensure the specific .7删z file is in the zip before extracting
+                if name_of_7sanz_inside_zip not in zf.namelist():
+                    raise FileNotFoundError(f"'{name_of_7sanz_inside_zip}' not found inside '{temp_zip_path}'. Available: {zf.namelist()}")
+                # Extracts to input_dir/name_of_7sanz_inside_zip
+                zf.extract(name_of_7sanz_inside_zip, path=input_dir) 
+            logger.info(f"ZIP decompression successful, extracted '{name_of_7sanz_inside_zip}' to '{input_dir}'")
 
-            # Check if .7删z file was extracted
-            if not os.path.exists(temp_7san_z_path):
-                raise FileNotFoundError(f"Expected intermediate .7删z file not found: {temp_7san_z_path}")
+            if not os.path.exists(extracted_7sanz_path): # Double check
+                 raise FileNotFoundError(f"Expected intermediate file not found after ZIP extraction: '{extracted_7sanz_path}'")
 
             # Step 3: Rename .7删z to .7z
-            logger.info(f"Step 3: Renaming .7删z to .7z -> {os.path.basename(temp_7z_path)}")
-            os.rename(temp_7san_z_path, temp_7z_path)
+            logger.info(f"Step 3: Renaming '{name_of_7sanz_inside_zip}' to '{os.path.basename(temp_7z_path)}'...")
+            os.rename(extracted_7sanz_path, temp_7z_path)
 
-            # Step 4a: List contents of 7z to get the original item name
-            logger.info("Step 4a: Listing 7z archive contents to find original item name...")
-            cmd_7z_list = ["7z", "l", temp_7z_path]
-            result = subprocess.run(cmd_7z_list, capture_output=True, text=True, check=True)
-            
-            # Parse 7z list output to find the item name (e.g., "my_file.pdf" or "my_folder/")
-            lines = result.stdout.splitlines()
-            for line in lines:
-                if 'Name' in line and 'Size' in line: # Header line
-                    continue
-                if '---' in line: # Separator line
-                    continue
-                if not line.strip(): # Empty line
-                    continue
-                
-                # Extract the name, usually the last part of the line after all stats
-                parts = line.strip().split()
-                if len(parts) > 5: # Assuming typical 7z list output columns (Size, Packed, Attr, Modified, Name)
-                    # The name is usually the last token, but can contain spaces.
-                    extracted_original_content_name = ' '.join(parts[4:]) 
-                    break
-            
-            if not extracted_original_content_name:
-                raise ValueError("Could not determine original item name from 7z archive listing.")
-            logger.info(f"Detected original item name inside archive: {extracted_original_content_name}")
+            # Step 4a: List contents of 7z to get the original item name using py7zr
+            # This step is still useful to know the name of the item that will be extracted,
+            # even if we don't use it for nested folder fixing later.
+            logger.info(f"Step 4a: Getting original item name from '{os.path.basename(temp_7z_path)}' with py7zr...")
+            with py7zr.SevenZipFile(temp_7z_path, 'r', password=password) as archive:
+                archived_names = archive.getnames()
+                if not archived_names:
+                    raise ValueError(f"7z archive '{os.path.basename(temp_7z_path)}' is empty or names could not be read.")
+                extracted_original_content_name = archived_names[0]
+                if extracted_original_content_name.endswith('/') or extracted_original_content_name.endswith('\\'):
+                     extracted_original_content_name = extracted_original_content_name[:-1]
 
+            if not extracted_original_content_name: 
+                raise ValueError(f"Could not determine original item name from 7z archive '{os.path.basename(temp_7z_path)}'.")
+            logger.info(f"Detected original item name inside archive: '{extracted_original_content_name}'")
 
-            # Step 4b: Decompress 7Z with password to restore original content
-            logger.info(f"Step 4b: Decompressing 7Z (password:{password}) -> Output directory: {output_dir}")
-            cmd_7z_extract = [
-                "7z", "x",
-                f"-p{password}",
-                f"-o{output_dir}", # Extract directly to output_dir
-                "-y", # Assume yes to all queries
-                temp_7z_path
-            ]
-            subprocess.run(cmd_7z_extract, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            # Step 4b: Decompress 7Z with password to restore original content using py7zr
+            # MODIFIED: Extract directly to input_dir
+            logger.info(f"Step 4b: Decompressing '{os.path.basename(temp_7z_path)}' with py7zr (password:****) to '{input_dir}'...")
+            with py7zr.SevenZipFile(temp_7z_path, 'r', password=password) as archive:
+                archive.extractall(path=input_dir) # MODIFIED: Changed output_dir to input_dir
             logger.info("7Z decompression successful.")
 
-            # Step 5: Fix nested directory structure (if 7z extracted a folder/folder)
-            # This applies if a directory was compressed and 7z put it into a folder of the same name.
-            # E.g., if original was "my_folder", and it extracted to "output_dir/my_folder/my_folder".
-            
-            # Determine the top-level item extracted into output_dir based on original content name
-            # If extracted_original_content_name is "my_file.pdf", then top_level_extracted_dir_name is "my_file.pdf"
-            # If extracted_original_content_name is "my_folder/", then top_level_extracted_dir_name is "my_folder"
-            top_level_extracted_item_name_in_output = extracted_original_content_name.strip(os.sep).split(os.sep)[0]
-            full_extracted_path_in_output = os.path.join(output_dir, top_level_extracted_item_name_in_output)
-
-            # Check if it's a directory and contains a nested directory of the same name
-            potential_nested_folder_path = os.path.join(full_extracted_path_in_output, top_level_extracted_item_name_in_output)
-            
-            # This fix specifically targets "folder/folder" scenario
-            if os.path.isdir(potential_nested_folder_path) and os.path.isdir(full_extracted_path_in_output):
-                logger.info(f"Step 5: Found potential nested directory: {potential_nested_folder_path}. Fixing structure...")
-                source_dir = potential_nested_folder_path
-                destination_dir = full_extracted_path_in_output
-                
-                # Move contents from nested path to its parent
-                for item in os.listdir(source_dir):
-                    shutil.move(os.path.join(source_dir, item), destination_dir)
-                shutil.rmtree(source_dir) # Remove the now empty nested directory
-                logger.info("Removed redundant directory level.")
-            else:
-                logger.debug("No 'folder/folder' nested directory structure found, skipping nested fix.")
+            # Step 5: REMOVED - Nested directory structure fixing is no longer needed as per user request.
+            logger.info("Step 5: Nested directory fixing skipped as per user request.")
             
             successful_files.append(file_name)
-            logger.info(f"File {file_name} processed successfully.")
+            logger.info(f"File '{file_name}' processed successfully for decoding.")
 
-        except subprocess.CalledProcessError as e:
-            error_msg = f"Command failed: {e.cmd}\nStdout: {e.stdout.decode().strip()}\nStderr: {e.stderr.decode().strip()}"
-            failed_files.append((file_name, error_msg))
-            logger.error(f"Processing failed for {file_name}: {error_msg}")
-        except FileNotFoundError as e:
-            error_msg = f"Missing intermediate file: {e}"
-            failed_files.append((file_name, error_msg))
-            logger.error(f"Processing failed for {file_name}: {error_msg}")
         except Exception as e:
-            error_msg = f"An unexpected error occurred: {type(e).__name__} - {e}"
+            error_msg = f"An unexpected error occurred during decoding of '{file_name}': {type(e).__name__} - {e}"
             failed_files.append((file_name, error_msg))
-            logger.error(f"Processing failed for {file_name}: {error_msg}")
+            logger.error(error_msg, exc_info=True) # Log with traceback
         finally:
-            # Clean up all intermediate files
-            for temp_file_path in [temp_zip_path, temp_7san_z_path, temp_7z_path]:
-                if os.path.exists(temp_file_path):
+            # Clean up intermediate files from input_dir
+            for temp_file_path_cleanup in [temp_zip_path, extracted_7sanz_path, temp_7z_path]:
+                if os.path.exists(temp_file_path_cleanup):
                     try:
-                        os.remove(temp_file_path)
-                        logger.info(f"Cleaned up intermediate file: {os.path.basename(temp_file_path)}")
-                    except OSError as e:
-                        logger.error(f"Could not delete intermediate file {os.path.basename(temp_file_path)}: {e}")
+                        os.remove(temp_file_path_cleanup)
+                        logger.info(f"Cleaned up intermediate file from decoding: '{os.path.basename(temp_file_path_cleanup)}'")
+                    except OSError as e_clean:
+                        logger.error(f"Could not delete intermediate file '{os.path.basename(temp_file_path_cleanup)}': {e_clean}")
             
-            # If the process failed mid-way and created a partial folder/file, try to clean it
-            if file_name in [f[0] for f in failed_files] and extracted_original_content_name: # Only if this specific file failed
-                # Determine the top-level item that would have been extracted
-                top_level_extracted_item_name_in_output = extracted_original_content_name.strip(os.sep).split(os.sep)[0]
-                potential_partial_output = os.path.join(output_dir, top_level_extracted_item_name_in_output)
-                
+            # Cleanup partial extraction in input_dir if this file failed
+            # This part needs to be careful as input_dir is now also the extraction target.
+            # We only want to remove the specific item that was being extracted if it failed.
+            if file_name in [f[0] for f in failed_files] and extracted_original_content_name:
+                # The item that would have been created in input_dir
+                potential_partial_output = os.path.join(input_dir, extracted_original_content_name)
                 if os.path.exists(potential_partial_output):
-                    try:
-                        if os.path.isdir(potential_partial_output):
-                            shutil.rmtree(potential_partial_output)
-                        else:
-                            os.remove(potential_partial_output)
-                        logger.warning(f"Cleaned up partial output: {os.path.basename(potential_partial_output)}")
-                    except OSError as e:
-                        logger.error(f"Could not delete partial output {os.path.basename(potential_partial_output)}: {e}")
-
-
-    duration = time.time() - start_time
-    report_generator.generate_report(
-        report_title="Item Double Decompression Report",
-        total_processed=len(encoded_files),
-        success_files=successful_files,
-        error_files=failed_files,
-        duration=duration
-    )
-    logger.info("All files processed! Final directory structure optimized.")
+                    # Check if it's not one of the original .z删ip files or other essential files
+                    if not potential_partial_output.endswith(".z删ip") and potential_partial_output != full_zsanip_path:
+                        logger.warning(f"Attempting to clean up partial output due to failure: '{potential_partial_output}'")
+                        try:
+                            if os.path.isdir(potential_partial_output): shutil.rmtree(potential_partial_output)
+                            else: os.remove(potential_partial_output)
+                            logger.info(f"Cleaned up partial output: '{os.path.basename(potential_partial_output)}'")
+                        except OSError as e_clean:
+                            logger.error(f"Could not delete partial output '{os.path.basename(potential_partial_output)}': {e_clean}")
+                        
+    duration_total = time.time() - start_time_total
+    if report_generator: # Check if report_generator was successfully imported
+        report_generator.generate_report(
+            report_title="Item Double Decompression Report (Python Libraries)",
+            total_processed=len(encoded_files),
+            success_files=successful_files,
+            error_files=failed_files,
+            duration=duration_total
+        )
+    else:
+        logger.info("Report generation skipped as 'report_generator' module was not found.")
+    logger.info("All files processed for decoding!")
