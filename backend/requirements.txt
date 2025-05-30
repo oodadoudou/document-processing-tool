@@ -1,0 +1,12 @@
+flask==3.0.2
+flask_cors==4.0.0
+tqdm==4.66.2
+pikepdf==8.11.2
+PyMuPDF==1.23.26
+pypinyin==0.50.0
+Pillow==10.2.0
+beautifulsoup4==4.12.3
+ebooklib==0.18
+py7zr==0.20.8
+python-docx==1.1.0
+zhconv==1.4.3
