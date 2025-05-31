@@ -1,23 +1,140 @@
+# File Process Tools | 文件处理工具
+
+[English](#english) | [中文](#chinese)
+
+<a name="english"></a>
 # File Process Tools
+
+A powerful file processing toolkit that provides PDF processing, file compression, file conversion, and other functionalities.
+
+## Features
+
+**PDF Processing**
+* **PDF Merge**: Combine multiple PDF files into a single PDF document.
+* **PDF Page Processing**: Support deleting first page, last page, first and last pages, or specific single/multiple pages from PDF files.
+* **PDF to Image**: Convert each page of a PDF file into separate image files (PNG, JPG formats).
+* **PDF Text Extraction**: Extract text content from PDF files and save as TXT files, supporting multiple output formats.
+* **PDF Encryption/Decryption**: Set password protection for PDF files or decrypt encrypted PDF files.
+* **PDF File Repair**: Attempt to repair damaged or unopenable PDF files.
+* **Images to PDF**: Merge multiple image files into a PDF document, with options to adjust image size, DPI, and compression during conversion.
+
+**File and Folder Management**
+* **Batch Filename Processing**:
+    * Add prefix/suffix to filenames.
+    * Remove specified characters or pattern matches from filenames.
+    * Rename items based on specified patterns (files, folders, or both).
+    * Extract number sequences from filenames.
+    * Support undoing the last rename operation (if recorded).
+* **Folder Flattening**: Move all files from subfolders to the parent folder's root directory.
+* **Folder Encryption/Decryption**: Encrypt and compress folders and their contents, with corresponding decrypt and decompress operations.
+* **Create ISO from Subfolders**: Create separate ISO image files for each subfolder under a specified parent directory.
+* **File Type Organization**: Automatically organize files into corresponding subfolders based on their extensions (e.g., .pdf, .epub, .txt).
+
+**File Conversion and Merging**
+* **EPUB to TXT**: Convert EPUB format ebooks to plain text TXT files.
+* **TXT File Merging**: Combine multiple TXT files into a single TXT file.
+
+## Download and Installation
+
+1. Download the latest `File Process Tools Setup.exe` from the [Releases](../../releases) page
+2. Double-click the installer
+3. Follow the installation wizard
+4. Launch the program from the Start menu or desktop shortcut
+
+## System Requirements
+
+- Windows 10/11 64-bit
+
+## Usage Instructions
+
+1. After launching the program, select the desired function from the left menu
+2. Drag and drop or select files according to the interface prompts
+3. Set the appropriate parameters
+4. Click the process button to start the operation
+
+## Development
+
+### Tech Stack
+- Frontend: React + TypeScript + Electron
+- Backend: Python + Flask
+- Packaging: electron-builder + PyInstaller
+
+### Local Development
+```bash
+# Frontend Development
+cd frontend
+yarn install
+yarn start
+
+# Backend Development
+cd backend
+python -m venv venv
+.\venv\Scripts\activate
+pip install -r requirements.txt
+python app.py
+```
+
+## FAQ
+
+1. Program won't start
+   - Ensure running as administrator
+   - Check if antivirus is blocking
+   - Verify Windows Defender isn't blocking the program
+
+2. File processing fails
+   - Ensure files aren't in use by other programs
+   - Check file read/write permissions
+   - Verify sufficient disk space
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md)
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Submit a Pull Request
+
+## License
+
+MIT License - See [LICENSE](LICENSE) file
+
+---
+
+<a name="chinese"></a>
+# 文件处理工具
 
 一个强大的文件处理工具集，提供PDF处理、文件压缩、文件转换等功能。
 
 ## 功能特点
 
-- PDF处理
-  - PDF合并
-  - PDF拆分
-  - PDF转图片
-  - PDF提取文本
-- 文件压缩
-  - 7z压缩/解压
-  - 图片压缩
-- 文件转换
-  - Word转PDF
-  - 图片格式转换
-- 中文文件名处理
-  - 拼音转换
-  - 繁简转换
+**PDF 处理**
+* **PDF 合并**: 将多个 PDF 文件合并成一个单一的 PDF 文档。
+* **PDF 页面处理**: 支持删除 PDF 文件的首页、末页、首末页，或删除指定的单个/多个页面。
+* **PDF 转图片**: 将 PDF 文件的每一页转换为独立的图片文件（如 PNG, JPG 格式）。
+* **PDF 文本提取**: 从 PDF 文件中提取文本内容并保存为 TXT 文件，支持多种输出格式。
+* **PDF 加密与解密**: 为 PDF 文件设置密码进行加密，或对已加密的 PDF 文件进行解密。
+* **PDF 文件修复**: 尝试修复损坏或无法打开的 PDF 文件。
+* **图片文件转 PDF**: 将多个图片文件合并并转换为一个 PDF 文档，支持在转换过程中调整图片尺寸和 DPI，并可对图片进行压缩。
+
+**文件与文件夹管理**
+* **文件名批量处理**:
+    * 添加文件名前缀/后缀。
+    * 删除文件名中的指定字符或匹配模式的字符。
+    * 根据指定模式（文件、文件夹或两者）统一重命名项目。
+    * 提取文件名中的数字序列。
+    * 支持撤销上一次的重命名操作（若有记录）。
+* **文件夹层级展平**: 将指定文件夹内所有子文件夹中的文件移动到该父文件夹的根目录。
+* **文件夹加密压缩/解压缩**: 对文件夹及其内容进行加密压缩处理，并支持对应的解密解压缩操作。
+* **从子文件夹创建 ISO 镜像**: 将指定父目录下的各个子文件夹分别创建为独立的 ISO 镜像文件。
+* **文件按类型分组整理**: 根据文件的扩展名（如 .pdf, .epub, .txt 等），自动将文件整理到相应的子文件夹中。
+
+**文件转换与合并**
+* **EPUB 转 TXT**: 将 EPUB 格式的电子书文件转换为纯文本 TXT 文件。
+* **TXT 文件合并**: 将多个 TXT 文本文件合并成一个单一的 TXT 文件。
 
 ## 下载和安装
 
@@ -29,8 +146,6 @@
 ## 系统要求
 
 - Windows 10/11 64位
-- 4GB RAM 或以上
-- 500MB 可用磁盘空间
 
 ## 使用说明
 
@@ -85,6 +200,6 @@ python app.py
 4. 推送到分支 (`git push origin feature/AmazingFeature`)
 5. 提交 Pull Request
 
-## License
+## 许可证
 
 MIT License - 详见 [LICENSE](LICENSE) 文件 
