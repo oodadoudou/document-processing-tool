@@ -192,6 +192,15 @@ Thumbs.db
 *.tar.gz
 *.msi
 
+# But allow these files in releases directory
+!releases/**/*.exe
+!releases/**/*.dmg
+!releases/**/*.pkg
+!releases/**/*.app
+!releases/**/*.iso
+!releases/**/*.zip
+!releases/**/*.msi
+
 # Build output
 *Setup*.exe
 *Installer*.exe
@@ -199,6 +208,14 @@ Thumbs.db
 *Installer*.msi
 *Setup*.dmg
 *Installer*.dmg
+
+# But allow these patterns in releases directory
+!releases/**/*Setup*.exe
+!releases/**/*Installer*.exe
+!releases/**/*Setup*.msi
+!releases/**/*Installer*.msi
+!releases/**/*Setup*.dmg
+!releases/**/*Installer*.dmg
 
 # Keep these files if tracked by Git LFS
 !.gitattributes
