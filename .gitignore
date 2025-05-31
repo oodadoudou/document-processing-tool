@@ -94,7 +94,7 @@ env/
 *.pyc
 *.egg-info/
 __pycache__/
---
+
 # IDE 和编辑器文件
 .idea/             # IntelliJ IDEA
 .vscode/           # VS Code
@@ -179,3 +179,26 @@ Thumbs.db
 
 # PyInstaller
 *.spec
+
+# Large binary files
+*.exe
+*.dmg
+*.pkg
+*.app
+*.iso
+*.zip
+*.rar
+*.7z
+*.tar.gz
+*.msi
+
+# Build output
+*Setup*.exe
+*Installer*.exe
+*Setup*.msi
+*Installer*.msi
+*Setup*.dmg
+*Installer*.dmg
+
+# Keep these files if tracked by Git LFS
+!.gitattributes
