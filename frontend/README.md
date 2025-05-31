@@ -1,5 +1,63 @@
 # Frontend (React)
 
+[English](#english) | [中文](#chinese)
+
+<a name="english"></a>
+# Frontend (React)
+
+## 1. Install Node.js and npm
+
+### macOS / Linux Recommended
+
+Using nvm (Node Version Manager):
+
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+# After reopening terminal
+nvm install --lts
+nvm use --lts
+```
+
+### Windows Recommended
+
+Download installer from [Node.js Official Website](https://nodejs.org/) or use [nodist](https://github.com/nullivex/nodist):
+
+```powershell
+# After installing, in command line:
+node -v
+npm -v
+```
+
+## 2. Install Dependencies
+
+```bash
+npm install
+```
+
+## 3. Start Development Server
+
+```bash
+npm start
+```
+- Default access: http://localhost:3000
+- Supports hot reload for development.
+
+## 4. Build Production Static Files
+
+```bash
+npm run build
+```
+- Generated static files in `build/` directory, ready for Electron or web server deployment.
+
+## 5. Notes
+- Development mode (`npm start`): Local debugging with auto-refresh.
+- Production mode (`npm run build`): Generate optimized static assets for release.
+
+---
+
+<a name="chinese"></a>
+# 前端 (React)
+
 ## 1. 安装 Node.js 和 npm
 
 ### macOS / Linux 推荐
