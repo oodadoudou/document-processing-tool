@@ -116,22 +116,23 @@ def _combine_txts_for_api(input_dir: str, files_to_combine: list, output_path: s
 
 def combine_files_api(input_dir: str, output_dir: str, file_type_char: str, output_base_name: str) -> dict:
     """
-    API-adapted: Main merge function.
+    API-adapted: Combines multiple files of the same type into a single file.
     Args:
         input_dir (str): Directory containing files to merge.
         output_dir (str): Directory to save the merged file.
         file_type_char (str): 'p' for PDF, 't' for TXT.
         output_base_name (str): Base name for the output merged file (without extension).
     Returns:
-        dict: Operation results.
+        dict: Operation results including success status and processed files details.
     """
     module_logger.info(f"API: Combining '{file_type_char}' files from '{input_dir}' to '{output_dir}/{output_base_name}'.")
     messages = []
     successful_input_files = []
-    failed_input_file_details = [] # List of {"file": "...", "error": "..."}
+    failed_input_file_details = []  # List of {"file": "...", "error": "..."}
     overall_success = True
     final_output_path = None
 
+    # Map file type characters to extensions
     ext_map = {'p': '.pdf', 't': '.txt'}
     if file_type_char not in ext_map:
         msg = f"Invalid file_type_char: '{file_type_char}'. Supported: {', '.join(ext_map.keys())}."
@@ -140,11 +141,13 @@ def combine_files_api(input_dir: str, output_dir: str, file_type_char: str, outp
 
     target_extension = ext_map[file_type_char]
     
+    # Input validation
     if not os.path.isdir(input_dir):
         msg = f"Input directory '{input_dir}' does not exist."
         module_logger.error(msg)
         return {"success": False, "messages": [f"[ERROR] {msg}"], "error_count": 1}
 
+    # Get list of files to combine, sorted naturally
     try:
         files_to_combine = sorted(
             [f for f in os.listdir(input_dir) if f.lower().endswith(target_extension)],
@@ -161,6 +164,7 @@ def combine_files_api(input_dir: str, output_dir: str, file_type_char: str, outp
         messages.append(f"[WARN] {msg}")
         return {"success": True, "messages": messages, "total_input_files_found": 0, "files_merged_count": 0, "file_processing_errors": 0}
 
+    # Ensure output directory exists
     try:
         os.makedirs(output_dir, exist_ok=True)
     except Exception as e:
@@ -168,7 +172,7 @@ def combine_files_api(input_dir: str, output_dir: str, file_type_char: str, outp
         module_logger.error(msg)
         return {"success": False, "messages": [f"[ERROR] {msg}"], "error_count": 1}
 
-    # Construct the full output path
+    # Prepare output path
     output_filename_with_ext = f"{output_base_name}{target_extension}" if not output_base_name.lower().endswith(target_extension) else output_base_name
     final_output_path = os.path.join(output_dir, output_filename_with_ext)
 
@@ -177,15 +181,17 @@ def combine_files_api(input_dir: str, output_dir: str, file_type_char: str, outp
     for i, f_name in enumerate(files_to_combine, 1):
         messages.append(f"[INFO] {i:02d}. {f_name}")
 
+    # Process files based on type
     if file_type_char == 'p':
         successful_input_files, failed_details_list = _combine_pdfs_for_api(input_dir, files_to_combine, final_output_path)
     elif file_type_char == 't':
         successful_input_files, failed_details_list = _combine_txts_for_api(input_dir, files_to_combine, final_output_path)
-    else: # Should not happen due to earlier check
+    else:
         msg = f"Internal error: No handler for file type '{file_type_char}'."
         module_logger.error(msg)
         return {"success": False, "messages": [f"[ERROR] {msg}"], "error_count": 1}
 
+    # Process results
     for fname, err in failed_details_list:
         failed_input_file_details.append({"file": fname, "error": err})
         messages.append(f"[ERROR] Processing '{fname}': {err}")

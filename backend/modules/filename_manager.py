@@ -98,7 +98,7 @@ def delete_filename_chars_api(input_dir: str, char_pattern: str) -> dict:
         input_dir (str): The directory containing the files.
         char_pattern (str): The character (or regex pattern) to delete.
     Returns:
-        dict: Operation results.
+        dict: Operation results including success status and processed files count.
     """
     module_logger = logging.getLogger(__name__)
     module_logger.info(f"API: Deleting pattern '{char_pattern}' from filenames in '{input_dir}'")
@@ -107,6 +107,7 @@ def delete_filename_chars_api(input_dir: str, char_pattern: str) -> dict:
     error_count = 0
     overall_success = True
 
+    # Input validation
     if not os.path.isdir(input_dir):
         msg = f"Input directory '{input_dir}' does not exist."
         module_logger.error(msg)

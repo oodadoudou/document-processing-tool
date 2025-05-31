@@ -172,7 +172,7 @@ def decode_folders_with_double_decompression_api(input_dir: str, password: str =
         input_dir (str): Directory containing .z删ip files and where output will be placed.
         password (str): Password for 7z decryption.
     Returns:
-        dict: Operation results.
+        dict: Operation results including success status and processed files details.
     """
     module_logger.info(f"API: Starting double decompression (Python libs) in '{input_dir}' with provided password.")
     messages = []
@@ -183,6 +183,7 @@ def decode_folders_with_double_decompression_api(input_dir: str, password: str =
     error_count = 0
     overall_success = True
 
+    # Input validation
     if not password:
         msg = "Password cannot be empty for 7z decryption."
         module_logger.error(msg)
@@ -208,44 +209,45 @@ def decode_folders_with_double_decompression_api(input_dir: str, password: str =
 
     total_archives_to_process = len(encoded_files)
 
-    for encoded_filename in tqdm(encoded_files, desc="API Decoding Files (Python Libs)", unit="file", disable=True):
+    # Process each encoded file
+    for encoded_filename in encoded_files:
         full_zsanip_path = os.path.join(input_dir, encoded_filename)
-        item_base_name = Path(encoded_filename).stem # e.g., "my_folder" from "my_folder.z删ip"
+        base_name = os.path.splitext(encoded_filename)[0]
         
-        temp_zip_filename = f"{item_base_name}.zip"
-        expected_7sanz_in_zip = f"{item_base_name}.7删z" # Name of the file inside the zip
-        
+        # Temporary and intermediate file paths
+        temp_zip_filename = f"{base_name}.zip"
         temp_zip_path = os.path.join(input_dir, temp_zip_filename)
-        extracted_7sanz_path = os.path.join(input_dir, expected_7sanz_in_zip) # Where .7删z is extracted
-        final_7z_path = os.path.join(input_dir, f"{item_base_name}.7z") # Renamed from .7删z
+        expected_7sanz_in_zip = f"{base_name}.7删z"
+        extracted_7sanz_path = os.path.join(input_dir, expected_7sanz_in_zip)
+        final_7z_path = os.path.join(input_dir, f"{base_name}.7z")
 
         processed_archive_count += 1
         current_archive_success = True
         extracted_content_final_name = None
 
         try:
-            # Step 1: Copy .z删ip and rename the copy to .zip
+            # Step 1: Copy and rename to .zip
             module_logger.info(f"Decoding '{encoded_filename}': Step 1/4 - Copying and renaming to '{temp_zip_filename}'...")
             shutil.copy2(full_zsanip_path, temp_zip_path)
             messages.append(f"[INFO] Copied '{encoded_filename}' to '{temp_zip_filename}'.")
 
-            # Step 2: Decompress .zip to get .7删z using zipfile
+            # Step 2: Extract .7删z from .zip
             module_logger.info(f"Decoding '{encoded_filename}': Step 2/4 - Decompressing '{temp_zip_filename}'...")
             with zipfile.ZipFile(temp_zip_path, 'r') as zf:
                 if expected_7sanz_in_zip not in zf.namelist():
                     raise FileNotFoundError(f"'{expected_7sanz_in_zip}' not found inside '{temp_zip_filename}'. Available: {zf.namelist()}")
-                zf.extract(expected_7sanz_in_zip, path=input_dir) # Extracts to input_dir/expected_7sanz_in_zip
+                zf.extract(expected_7sanz_in_zip, path=input_dir)
             messages.append(f"[INFO] Extracted '{expected_7sanz_in_zip}' from zip.")
             
             if not os.path.exists(extracted_7sanz_path):
                 raise FileNotFoundError(f"Intermediate file '{expected_7sanz_in_zip}' not found after ZIP extraction.")
 
-            # Step 3: Rename .7删z to .7z
+            # Step 3: Rename to .7z
             module_logger.info(f"Decoding '{encoded_filename}': Step 3/4 - Renaming '{expected_7sanz_in_zip}' to '{os.path.basename(final_7z_path)}'...")
             os.rename(extracted_7sanz_path, final_7z_path)
             messages.append(f"[INFO] Renamed to '{os.path.basename(final_7z_path)}'.")
 
-            # Step 4: Decompress .7z with password using py7zr, extracting into input_dir
+            # Step 4: Extract contents with password
             module_logger.info(f"Decoding '{encoded_filename}': Step 4/4 - Decompressing '{os.path.basename(final_7z_path)}' to '{input_dir}'...")
             with py7zr.SevenZipFile(final_7z_path, 'r', password=password) as archive:
                 archive_names = archive.getnames()

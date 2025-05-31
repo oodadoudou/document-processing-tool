@@ -1,4 +1,4 @@
-# backend/app.py
+# backend/app.py - Main Flask application server
 import os
 import sys
 import logging
@@ -26,7 +26,6 @@ except ImportError:
     from modules import file_organizer
     from modules import folder_processor
 
-
 app = Flask(__name__)
 CORS(app)
 
@@ -34,7 +33,7 @@ logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 module_logger = logging.getLogger(__name__)
 
-# --- Health Check ---
+# Health check endpoint for monitoring
 @app.route('/api/health', methods=['GET'])
 def health_check():
     module_logger.info("Health check endpoint called.")

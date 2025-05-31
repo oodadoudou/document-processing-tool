@@ -195,33 +195,27 @@ def organize_files_by_group_api(input_dir: str,
                                 target_extensions_str: str = ".pdf .epub .txt .jpg .jpeg .png .gif .bmp .tiff .webp .zip .rar .7z .tar .gz"
                                 ) -> dict:
     """
-    API-adapted: Organizes files into subfolders based on common substrings or individual filenames.
+    API-adapted: Organizes files into groups based on common substrings in their names.
     Args:
-        input_dir (str): The directory containing files to organize.
-        target_extensions_str (str): Space-separated string of target extensions.
+        input_dir (str): Directory containing files to organize.
+        target_extensions_str (str): Space-separated list of file extensions to process.
     Returns:
-        dict: Operation results.
+        dict: Operation results including moved files details and error information.
     """
-    module_logger.info(f"API: Starting file organization in '{input_dir}'. Target extensions: '{target_extensions_str}'")
+    module_logger = logging.getLogger(__name__)
+    module_logger.info(f"API: Organizing files by group in '{input_dir}'")
     messages = []
-    moved_files_details = []  # List of {"file": "...", "destination_folder": "..."}
-    skipped_files_details = []# List of {"file": "...", "reason": "..."}
-    error_details = []        # List of {"file": "...", "error": "..."}
-    
+    moved_files_details = []  # Track successful moves
+    skipped_files_details = []  # Track skipped files
+    error_details = []  # Track errors
     moved_count = 0
     skipped_count = 0
     error_count = 0
     overall_success = True
 
-    try:
-        target_extensions = {ext.strip().lower() for ext in target_extensions_str.split() if ext.strip().startswith('.')}
-        if not target_extensions:
-            raise ValueError("No valid target extensions provided.")
-    except ValueError as e:
-        msg = f"Invalid target_extensions_str: {e}. Example format: '.pdf .epub .txt'"
-        module_logger.error(msg)
-        return {"success": False, "messages": [f"[ERROR] {msg}"], "error_count": 1}
-
+    # Input validation and setup
+    target_extensions = set(ext.lower() for ext in target_extensions_str.split())
+    
     if not os.path.isdir(input_dir):
         msg = f"Input directory '{input_dir}' does not exist."
         module_logger.error(msg)
@@ -244,8 +238,8 @@ def organize_files_by_group_api(input_dir: str,
         messages.append(f"[WARN] {msg}")
         return {"success": True, "messages": messages, "moved_count": 0, "skipped_count":0, "error_count": 0}
 
-    # Grouping logic
-    file_groups = _group_files_by_common_substring_optimized(all_target_files, min_common_len=5) # min_common_len for effective grouping
+    # Group files by common substrings for intelligent organization
+    file_groups = _group_files_by_common_substring_optimized(all_target_files, min_common_len=5)
     
     total_files_to_process = len(all_target_files)
 

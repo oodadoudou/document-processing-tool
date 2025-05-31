@@ -139,12 +139,12 @@ def encode_pdfs_api(input_dir: str, output_dir: str, password: str) -> dict:
 
 def decode_pdfs_api(input_dir: str, password: str) -> dict:
     """
-    API-adapted: PDF Decryption Function.
+    API-adapted: Decrypts password-protected PDF files.
     Args:
         input_dir (str): The directory containing PDF files to decrypt.
         password (str): Decryption password.
     Returns:
-        dict: Operation results.
+        dict: Operation results including success status and processed files details.
     """
     module_logger.info(f"API: Starting PDF decryption in '{input_dir}' with provided password.")
     messages = []
@@ -155,6 +155,7 @@ def decode_pdfs_api(input_dir: str, password: str) -> dict:
     error_count = 0
     overall_success = True
 
+    # Input validation
     if not password:
         msg = "Password cannot be empty for decryption."
         module_logger.error(msg)
